@@ -3,6 +3,7 @@ package com.sparta.springcore.controller;
 import com.sparta.springcore.dto.ProductMypriceRequestDto;
 import com.sparta.springcore.dto.ProductRequestDto;
 import com.sparta.springcore.model.Product;
+import com.sparta.springcore.model.User;
 import com.sparta.springcore.model.UserRoleEnum;
 import com.sparta.springcore.security.UserDetailsImpl;
 import com.sparta.springcore.service.ProductService;
@@ -30,6 +31,7 @@ public class ProductController {
         Long userId = userDetails.getUser().getId();
 
         Product product = productService.createProduct(requestDto, userId);
+
 // 응답 보내기
         return product;
     }
@@ -52,8 +54,10 @@ public class ProductController {
             @RequestParam("isAsc") boolean isAsc,
             @AuthenticationPrincipal UserDetailsImpl userDetails
     ) {
+// 로그인 되어 있는 회원 테이블의 ID
         Long userId = userDetails.getUser().getId();
         page = page - 1;
+
         return productService.getProducts(userId, page, size, sortBy, isAsc);
     }
 
@@ -66,7 +70,19 @@ public class ProductController {
             @RequestParam("sortBy") String sortBy,
             @RequestParam("isAsc") boolean isAsc
     ) {
-        page = page -1;
+        page = page - 1;
         return productService.getAllProducts(page, size, sortBy, isAsc);
+    }
+
+    // 상품에 폴더 추가
+    @PostMapping("/api/products/{productId}/folder")
+    public Long addFolder(
+            @PathVariable Long productId,
+            @RequestParam Long folderId,
+            @AuthenticationPrincipal UserDetailsImpl userDetails
+    ) {
+        User user = userDetails.getUser();
+        Product product = productService.addFolder(productId, folderId, user);
+        return product.getId();
     }
 }
