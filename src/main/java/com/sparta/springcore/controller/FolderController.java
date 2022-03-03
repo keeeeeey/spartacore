@@ -1,6 +1,7 @@
 package com.sparta.springcore.controller;
 
 import com.sparta.springcore.dto.FolderRequestDto;
+import com.sparta.springcore.exception.RestApiException;
 import com.sparta.springcore.model.Folder;
 import com.sparta.springcore.model.Product;
 import com.sparta.springcore.model.User;
@@ -8,6 +9,8 @@ import com.sparta.springcore.security.UserDetailsImpl;
 import com.sparta.springcore.service.FolderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -59,6 +62,19 @@ public class FolderController {
                 sortBy,
                 isAsc,
                 userDetails.getUser()
+        );
+    }
+
+    @ExceptionHandler({ IllegalArgumentException.class })
+    public ResponseEntity handleException(IllegalArgumentException ex) {
+        RestApiException restApiException = new RestApiException();
+        restApiException.setHttpStatus(HttpStatus.BAD_REQUEST);
+        restApiException.setErrorMessage(ex.getMessage());
+        return new ResponseEntity(
+// HTTP body
+                restApiException,
+// HTTP status code
+                HttpStatus.BAD_REQUEST
         );
     }
 }

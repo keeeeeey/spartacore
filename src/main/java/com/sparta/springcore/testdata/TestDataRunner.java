@@ -1,9 +1,11 @@
 package com.sparta.springcore.testdata;
 
 import com.sparta.springcore.dto.ItemDto;
+import com.sparta.springcore.model.Folder;
 import com.sparta.springcore.model.Product;
 import com.sparta.springcore.model.User;
 import com.sparta.springcore.model.UserRoleEnum;
+import com.sparta.springcore.repository.FolderRepository;
 import com.sparta.springcore.repository.ProductRepository;
 import com.sparta.springcore.repository.UserRepository;
 import com.sparta.springcore.service.ItemSearchService;
@@ -30,6 +32,9 @@ public class TestDataRunner implements ApplicationRunner {
     ProductRepository productRepository;
 
     @Autowired
+    FolderRepository folderRepository;
+
+    @Autowired
     UserRepository userRepository;
 
     @Autowired
@@ -40,7 +45,7 @@ public class TestDataRunner implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
-        // 테스트 User 생성
+// 테스트 User 생성
         User testUser1 = new User("정국", passwordEncoder.encode("123"), "jg@sparta.com", UserRoleEnum.USER);
         User testUser2 = new User("제이홉", passwordEncoder.encode("123"), "hope@sparta.com", UserRoleEnum.USER);
         User testAdminUser1 = new User("아미", passwordEncoder.encode("123"), "army@sparta.com", UserRoleEnum.ADMIN);
@@ -48,8 +53,8 @@ public class TestDataRunner implements ApplicationRunner {
         testUser2 = userRepository.save(testUser2);
         testAdminUser1 = userRepository.save(testAdminUser1);
 
-        // 테스트 User 의 관심상품 등록
-        // 검색어 당 관심상품 10개 등록
+// 테스트 User 의 관심상품 등록
+// 검색어 당 관심상품 10개 등록
         createTestData(testUser1, "신발");
         createTestData(testUser1, "과자");
         createTestData(testUser1, "키보드");
@@ -64,23 +69,23 @@ public class TestDataRunner implements ApplicationRunner {
     }
 
     private void createTestData(User user, String searchWord) throws IOException {
-        // 네이버 쇼핑 API 통해 상품 검색
+// 네이버 쇼핑 API 통해 상품 검색
         List<ItemDto> itemDtoList = itemSearchService.getItems(searchWord);
 
         List<Product> productList = new ArrayList<>();
 
         for (ItemDto itemDto : itemDtoList) {
             Product product = new Product();
-            // 관심상품 저장 사용자
+// 관심상품 저장 사용자
             product.setUserId(user.getId());
-            // 관심상품 정보
+// 관심상품 정보
             product.setTitle(itemDto.getTitle());
             product.setLink(itemDto.getLink());
             product.setImage(itemDto.getImage());
             product.setLprice(itemDto.getLprice());
 
-            // 희망 최저가 랜덤값 생성
-            // 최저 (100원) ~ 최대 (상품의 현재 최저가 + 10000원)
+// 희망 최저가 랜덤값 생성
+// 최저 (100원) ~ 최대 (상품의 현재 최저가 + 10000원)
             int myPrice = getRandomNumber(MIN_MY_PRICE, itemDto.getLprice() + 10000);
             product.setMyprice(myPrice);
 
@@ -88,6 +93,9 @@ public class TestDataRunner implements ApplicationRunner {
         }
 
         productRepository.saveAll(productList);
+
+        Folder folder = new Folder(searchWord, user);
+        folderRepository.save(folder);
     }
 
     public int getRandomNumber(int min, int max) {
